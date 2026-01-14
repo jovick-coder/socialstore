@@ -1,7 +1,6 @@
 "use server";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 
 /**
@@ -13,11 +12,14 @@ export async function signupWithEmail(formData: FormData) {
 
   const supabase = await createServerSupabaseClient();
 
-  const { error } = await supabase.auth.signUp({
+  const { error, data } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: `${(await headers()).get("origin")}/auth/callback`,
+      data: {
+        email_confirm: true, // Auto-confirm for development
+      },
     },
   });
 
@@ -25,7 +27,19 @@ export async function signupWithEmail(formData: FormData) {
     return { error: error.message };
   }
 
-  redirect("/onboarding");
+  // Auto sign-in after signup (since email confirmation is disabled)
+  if (data.user && !data.session) {
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      return { error: signInError.message };
+    }
+  }
+
+  return { success: true, redirectTo: "/onboarding" };
 }
 
 /**
@@ -53,11 +67,9 @@ export async function loginWithEmail(formData: FormData) {
     .eq("user_id", data.user.id)
     .single();
 
-  if (!vendor) {
-    redirect("/onboarding");
-  }
+  const redirectTo = vendor ? "/dashboard" : "/onboarding";
 
-  redirect("/dashboard");
+  return { success: true, redirectTo };
 }
 
 /**
@@ -88,5 +100,5 @@ export async function getGoogleOAuthUrl() {
 export async function logout() {
   const supabase = await createServerSupabaseClient();
   await supabase.auth.signOut();
-  redirect("/login");
+  return { success: true, redirectTo: "/login" };
 }

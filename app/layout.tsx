@@ -13,8 +13,16 @@ import "./globals.css";
 // });
 
 export const metadata: Metadata = {
-  title: "WhatsApp Vendor Catalog - Sell Smarter on WhatsApp",
+  title: "SocialStore - Sell Smarter on WhatsApp",
   description: "Stop sending product images repeatedly. Create your catalog once, share one link, and let customers browse and order—saving time, data, and closing more sales.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

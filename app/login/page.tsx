@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import { loginWithEmail, getGoogleOAuthUrl } from '@/app/actions/auth'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -31,6 +33,9 @@ export default function LoginPage() {
     if (result?.error) {
       setError(result.error)
       setLoading(false)
+    } else if (result?.success && result?.redirectTo) {
+      router.push(result.redirectTo)
+      router.refresh()
     }
   }
 
