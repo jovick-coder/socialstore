@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getVendorProducts } from '@/app/actions/products'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import DashboardClient from '@/components/DashboardClient'
 import { generateCatalogUrl, generateWhatsAppCatalogLink } from '@/lib/whatsapp'
 
@@ -30,9 +31,13 @@ export default async function DashboardPage() {
   // Get products
   const { products = [] } = await getVendorProducts()
 
+  // Get host from headers (server-side)
+  const headersList = await headers()
+  const host = headersList.get('host') || 'localhost:3000'
+
   // Generate catalog link
-  const catalogLink = generateCatalogUrl(vendor.slug, window.location.host)
-  const storeLink = `${window.location.host}/${vendor.slug}`
+  const catalogLink = generateCatalogUrl(vendor.slug, host)
+  const storeLink = `${host}/${vendor.slug}`
 
   /**
    * Handle catalog share to WhatsApp
