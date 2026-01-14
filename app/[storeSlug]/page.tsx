@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createPublicSupabaseClient } from '@/lib/supabase/public'
 import { Metadata } from 'next'
 import StoreClient from '@/components/StoreClient'
 import BackButton from '@/components/BackButton'
@@ -18,12 +18,12 @@ export async function generateMetadata(
   { params }: StorePageProps
 ): Promise<Metadata> {
   const { storeSlug } = await params
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createPublicSupabaseClient()
 
-  const { data: vendor } = await supabase
+  const { data: vendor, error } = await supabase
     .from('vendors')
     .select('*')
-    .eq('slug', storeSlug)
+    .ilike('slug', storeSlug) // Case-insensitive search
     .single()
 
   if (!vendor) {
@@ -108,13 +108,13 @@ export async function generateMetadata(
 
 export default async function StorePage({ params }: StorePageProps) {
   const { storeSlug } = await params
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createPublicSupabaseClient()
 
-  // Get vendor
+  // Get vendor - use public client for unauthenticated access
   const { data: vendor, error: vendorError } = await supabase
     .from('vendors')
     .select('*')
-    .eq('slug', storeSlug)
+    .ilike('slug', storeSlug) // Case-insensitive search
     .single()
 
   if (vendorError || !vendor) {
