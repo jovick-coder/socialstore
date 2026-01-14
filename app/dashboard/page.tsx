@@ -31,8 +31,8 @@ export default async function DashboardPage() {
   const { products = [] } = await getVendorProducts()
 
   // Generate catalog link
-  const catalogLink = generateCatalogUrl(vendor.slug, process.env.NEXT_PUBLIC_APP_URL)
-  const storeLink = `${process.env.NEXT_PUBLIC_APP_URL}/${vendor.slug}`
+  const catalogLink = generateCatalogUrl(vendor.slug, window.location.host)
+  const storeLink = `${window.location.host}/${vendor.slug}`
 
   /**
    * Handle catalog share to WhatsApp
