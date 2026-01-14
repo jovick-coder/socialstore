@@ -147,6 +147,8 @@ export default function StoreClient({ vendor, products }: StoreClientProps) {
   }, [cart, customerId, vendor.id])
 
   const handleAddToCart = (product: Product) => {
+    // const wasEmpty = cart.length === 0
+
     setCart((current) =>
       addToCart(current, {
         id: product.id,
@@ -159,8 +161,10 @@ export default function StoreClient({ vendor, products }: StoreClientProps) {
     // Track product click
     trackProductClick(vendor.id, product.id, product.name)
 
-    // Open cart sidebar
-    setIsCartOpen(true)
+    // // Only open cart on first item added
+    // if (wasEmpty) {
+    //   setIsCartOpen(true)
+    // }
   }
 
   const handleRemoveFromCart = (productId: string) => {
