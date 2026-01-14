@@ -90,10 +90,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   }
 
   const handleLogout = async () => {
-    const result = await logout()
-    if (result?.success && result?.redirectTo) {
-      router.push(result.redirectTo)
-      router.refresh()
+    try {
+      const result = await logout()
+      if (result?.success && result?.redirectTo) {
+        router.push(result.redirectTo)
+        router.refresh()
+      } else {
+        console.error('Logout failed:', result)
+        alert('Failed to logout. Please try again.')
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+      alert('An error occurred while logging out. Please try again.')
     }
   }
 

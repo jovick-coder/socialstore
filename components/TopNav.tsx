@@ -1,15 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { logout } from '@/app/actions/auth'
 
 interface TopNavProps {
   onMenuClick: () => void
 }
 
 export default function TopNav({ onMenuClick }: TopNavProps) {
+  const router = useRouter()
   const [vendor, setVendor] = useState<any>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -31,6 +35,24 @@ export default function TopNav({ onMenuClick }: TopNavProps) {
 
     loadVendor()
   }, [])
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      const result = await logout()
+      if (result?.success && result?.redirectTo) {
+        router.push(result.redirectTo)
+        router.refresh()
+      } else {
+        alert('Failed to logout. Please try again.')
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+      alert('An error occurred while logging out.')
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
 
   return (
     <div className="border-b bg-white shadow-sm">
@@ -105,14 +127,13 @@ export default function TopNav({ onMenuClick }: TopNavProps) {
                 >
                   Profile Settings
                 </a>
-                <form action="/api/auth/logout" method="POST">
-                  <button
-                    type="submit"
-                    className="w-full border-t px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-                  >
-                    Log out
-                  </button>
-                </form>
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="w-full border-t px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoggingOut ? 'Logging out...' : 'Log out'}
+                </button>
               </div>
             </>
           )}
