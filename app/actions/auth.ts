@@ -98,7 +98,18 @@ export async function getGoogleOAuthUrl() {
  * Server action for logging out
  */
 export async function logout() {
-  const supabase = await createServerSupabaseClient();
-  await supabase.auth.signOut();
-  return { success: true, redirectTo: "/login" };
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Logout error:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, redirectTo: "/login" };
+  } catch (error: any) {
+    console.error("Logout exception:", error);
+    return { success: false, error: error?.message || "Failed to logout" };
+  }
 }
