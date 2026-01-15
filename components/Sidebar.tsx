@@ -93,8 +93,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     try {
       const result = await logout()
       if (result?.success && result?.redirectTo) {
-        router.push(result.redirectTo)
-        router.refresh()
+        // Let server action handle redirect via redirect() call
+        // More reliable than client-side router.push() on slow networks
+        window.location.href = result.redirectTo
       } else {
         console.error('Logout failed:', result)
         alert('Failed to logout. Please try again.')

@@ -155,6 +155,8 @@ function EditProductContent() {
       setUpdating(false)
     } else {
       setSuccess(true)
+      // Programmatic navigation after successful update is appropriate
+      // Delay allows user to see success message before redirect
       setTimeout(() => {
         router.push('/dashboard')
       }, 1500)
@@ -178,8 +180,10 @@ function EditProductContent() {
       <header className="bg-white shadow">
         <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
+            {/* Next.js prefetches on hover for instant navigation back to dashboard */}
             <Link
               href="/dashboard"
+              prefetch={true}
               className="rounded-lg p-2 transition hover:bg-gray-100"
             >
               <svg
@@ -389,8 +393,10 @@ function EditProductContent() {
 
             {/* Submit Button */}
             <div className="flex gap-4 pt-4">
+              {/* Next.js prefetches on hover, instant navigation when user cancels */}
               <Link
                 href="/dashboard"
+                prefetch={true}
                 className="flex-1 rounded-lg border border-gray-300 px-6 py-3 text-center font-semibold text-gray-700 transition hover:bg-gray-50"
               >
                 Cancel

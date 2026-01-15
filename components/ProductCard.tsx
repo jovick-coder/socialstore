@@ -39,6 +39,10 @@ export default function ProductCard({ product, catalogLink, whatsappNumber }: Pr
       <div className="p-4">
         <Link
           href={`/dashboard/products/${product.id}`}
+          // Prefetch product detail: high-intent navigation from product card
+          // Next.js prefetches on hover, caching route data for instant navigation
+          // Critical for slow networks: eliminates loading spinner on click
+          prefetch={true}
           className="block hover:text-green-600 transition"
         >
           <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">{product.name}</h3>

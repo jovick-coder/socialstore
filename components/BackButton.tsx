@@ -7,6 +7,9 @@ export default function BackButton() {
 
   return (
     <button
+      // router.back() is appropriate here: uses browser history
+      // Provides instant navigation because page is already cached in browser
+      // More reliable than trying to determine previous route
       onClick={() => router.back()}
       className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 transition hover:text-gray-900"
     >

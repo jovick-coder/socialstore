@@ -35,8 +35,9 @@ export default function SignupPage() {
       setError(result.error)
       setLoading(false)
     } else if (result?.success && result?.redirectTo) {
-      router.push(result.redirectTo)
-      router.refresh()
+      // Programmatic navigation after registration is appropriate
+      // Use window.location for reliable redirect after auth state change
+      window.location.href = result.redirectTo
     }
   }
 
@@ -171,7 +172,8 @@ export default function SignupPage() {
           {/* Login Link */}
           <p className="mt-6 text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link href="/login" className="font-semibold text-green-600 hover:text-green-700">
+            {/* Next.js prefetches on hover for instant navigation between auth pages */}
+            <Link href="/login" prefetch={true} className="font-semibold text-green-600 hover:text-green-700">
               Log in
             </Link>
           </p>

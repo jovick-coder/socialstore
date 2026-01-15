@@ -54,6 +54,7 @@ export default function AddProductPage() {
 
       // Show success message
       alert('Product published successfully!')
+      // Programmatic navigation after successful form submission is appropriate
       router.push('/dashboard/products')
     } catch (error) {
       console.error('Error submitting product:', error)

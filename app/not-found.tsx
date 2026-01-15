@@ -43,6 +43,7 @@ export default function NotFound() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
+            // router.back() is appropriate: uses browser history for instant navigation
             onClick={() => router.back()}
             className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-lg transition"
           >
@@ -51,6 +52,8 @@ export default function NotFound() {
 
           <Link
             href="/"
+            // Prefetch home page: starts loading on hover for instant perceived navigation
+            prefetch={true}
             className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition text-center"
           >
             Home
@@ -58,6 +61,8 @@ export default function NotFound() {
 
           <Link
             href="/dashboard"
+            // Prefetch dashboard: high-intent navigation target
+            prefetch={true}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition text-center"
           >
             Dashboard
