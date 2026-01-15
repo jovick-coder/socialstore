@@ -1,10 +1,11 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/whatsapp'
 import Image from 'next/image'
 import BackButton from '@/components/BackButton'
 import ProductViewTracker from '@/components/ProductViewTracker'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { getVendorByUserId, getProductById, getProductAnalytics } from '@/lib/queries'
 
 interface ProductDetailPageProps {
   params: Promise<{
@@ -14,19 +15,17 @@ interface ProductDetailPageProps {
 
 export async function generateMetadata({ params }: ProductDetailPageProps) {
   const { productId } = await params
-  const supabase = await createServerSupabaseClient()
 
-  const { data: product } = await supabase
-    .from('products')
-    .select('name')
-    .eq('id', productId)
-    .single()
+  const product = await getProductById(productId)
 
   return {
     title: product ? `${product.name} | Product Details` : 'Product Details',
     description: 'View product details and analytics',
   }
 }
+
+// Revalidate every 2 minutes
+export const revalidate = 120
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const { productId } = await params
@@ -41,47 +40,26 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     redirect('/login')
   }
 
-  // Get vendor profile
-  const { data: vendor } = await supabase
-    .from('vendors')
-    .select('*')
-    .eq('user_id', user.id)
-    .single()
+  // Get vendor profile - cached query
+  const vendor = await getVendorByUserId(user.id)
 
   if (!vendor) {
     redirect('/onboarding')
   }
 
-  // Get product details
-  const { data: product, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', productId)
-    .eq('vendor_id', vendor.id)
-    .single()
+  // Get product details - cached query
+  const product = await getProductById(productId)
 
-  if (error || !product) {
+  if (!product || product.vendor_id !== vendor.id) {
     notFound()
   }
 
-  // Get product analytics
-  const { data: analytics = [] } = await supabase
-    .from('analytics')
-    .select('created_at')
-    .eq('vendor_id', vendor.id)
-    .eq('event_type', 'product_click')
-    .contains('metadata', { product_id: productId })
-    .order('created_at', { ascending: false })
+  // Get product analytics - cached query (last 30 days)
+  // INDEX RECOMMENDATION: Already added in queries.ts
+  const analytics = await getProductAnalytics(vendor.id, productId, 30)
 
-  const totalClicks = analytics?.length || 0
-
-  // Get recent clicks (last 30 days)
-  const thirtyDaysAgo = new Date()
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-  const recentClicks = analytics?.filter(
-    (event: any) => new Date(event.created_at) > thirtyDaysAgo
-  ).length || 0
+  const totalClicks = analytics.length
+  const recentClicks = totalClicks // Analytics already limited to 30 days
 
   return (
     <div className="space-y-6">

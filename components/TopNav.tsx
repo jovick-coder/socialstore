@@ -23,9 +23,10 @@ export default function TopNav({ onMenuClick }: TopNavProps) {
       } = await supabase.auth.getUser()
 
       if (user) {
+        // Only select columns needed for TopNav display
         const { data: vendorData } = await supabase
           .from('vendors')
-          .select('*')
+          .select('id, store_name, logo_url')
           .eq('user_id', user.id)
           .single()
 

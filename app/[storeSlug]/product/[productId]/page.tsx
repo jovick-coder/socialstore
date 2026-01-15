@@ -9,11 +9,11 @@
  */
 
 import { notFound } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { Metadata } from 'next'
 import ProductDetailClient from '@/components/ProductDetailClient'
 import BackButton from '@/components/BackButton'
 import { headers } from 'next/headers'
+import { getVendorBySlug, getProductById } from '@/lib/queries'
 
 // Enable ISR - product details cached for 3 minutes
 export const revalidate = 180
@@ -32,13 +32,8 @@ export async function generateMetadata(
   { params }: ProductDetailPageProps
 ): Promise<Metadata> {
   const { storeSlug, productId } = await params
-  const supabase = await createServerSupabaseClient()
 
-  const { data: vendor } = await supabase
-    .from('vendors')
-    .select('*')
-    .eq('slug', storeSlug)
-    .single()
+  const vendor = await getVendorBySlug(storeSlug)
 
   if (!vendor) {
     return {
@@ -46,14 +41,9 @@ export async function generateMetadata(
     }
   }
 
-  const { data: product } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', productId)
-    .eq('vendor_id', vendor.id)
-    .single()
+  const product = await getProductById(productId)
 
-  if (!product) {
+  if (!product || product.vendor_id !== vendor.id) {
     return {
       title: 'Product Not Found | SocialStore',
     }
@@ -86,28 +76,18 @@ export async function generateMetadata(
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const { storeSlug, productId } = await params
-  const supabase = await createServerSupabaseClient()
 
-  // Get vendor
-  const { data: vendor, error: vendorError } = await supabase
-    .from('vendors')
-    .select('*')
-    .eq('slug', storeSlug)
-    .single()
+  // Get vendor - cached query deduplicates with generateMetadata
+  const vendor = await getVendorBySlug(storeSlug)
 
-  if (vendorError || !vendor) {
+  if (!vendor) {
     notFound()
   }
 
-  // Get product
-  const { data: product, error: productError } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', productId)
-    .eq('vendor_id', vendor.id)
-    .single()
+  // Get product - cached query deduplicates with generateMetadata
+  const product = await getProductById(productId)
 
-  if (productError || !product) {
+  if (!product || product.vendor_id !== vendor.id) {
     notFound()
   }
 

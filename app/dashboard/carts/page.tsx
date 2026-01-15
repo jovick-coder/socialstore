@@ -1,12 +1,16 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/whatsapp'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { getVendorByUserId, getVendorCarts } from '@/lib/queries'
 
 export const metadata = {
   title: 'Carts | Dashboard',
   description: 'View and manage customer carts',
 }
+
+// Revalidate every 30 seconds for fresh cart data
+export const revalidate = 30
 
 export default async function CartsPage() {
   const supabase = await createServerSupabaseClient()
@@ -20,23 +24,15 @@ export default async function CartsPage() {
     redirect('/login')
   }
 
-  // Get vendor profile
-  const { data: vendor } = await supabase
-    .from('vendors')
-    .select('*')
-    .eq('user_id', user.id)
-    .single()
+  // Get vendor profile - cached query
+  const vendor = await getVendorByUserId(user.id)
 
   if (!vendor) {
     redirect('/onboarding')
   }
 
-  // Get all carts for this vendor
-  const { data: carts = [] } = await supabase
-    .from('carts')
-    .select('*')
-    .eq('vendor_id', vendor.id)
-    .order('created_at', { ascending: false })
+  // Get all carts for this vendor - cached query
+  const carts = await getVendorCarts(vendor.id)
 
   const statusColors = {
     pending: { bg: 'bg-yellow-50', text: 'text-yellow-800', badge: 'bg-yellow-200' },
@@ -65,7 +61,7 @@ export default async function CartsPage() {
 
       {/* Carts List */}
       <div className="rounded-lg border bg-white shadow-sm overflow-hidden">
-        {carts && carts?.length > 0 ? (
+        {carts.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b bg-gray-50">

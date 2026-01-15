@@ -5,12 +5,21 @@
  * - All data fetching on the server (0 client-side Supabase calls)
  * - Reduced JavaScript bundle (no useEffect, useState for data loading)
  * - Fast initial page load on slow networks
- * - Automatic caching via Next.js
+ * - Automatic caching via Next.js and react.cache
  */
 
-import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ProfileClient from '@/components/ProfileClient'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { getVendorByUserId } from '@/lib/queries'
+
+export const metadata = {
+  title: 'Profile Settings | Dashboard',
+  description: 'Manage your store profile and settings',
+}
+
+// Revalidate every 2 minutes
+export const revalidate = 120
 
 export default async function ProfilePage() {
   const supabase = await createServerSupabaseClient()
@@ -24,14 +33,10 @@ export default async function ProfilePage() {
     redirect('/login')
   }
 
-  // Server-side data fetching - happens before HTML is sent to client
-  const { data: vendor, error } = await supabase
-    .from('vendors')
-    .select('*')
-    .eq('user_id', user.id)
-    .single()
+  // Get vendor - cached query
+  const vendor = await getVendorByUserId(user.id)
 
-  if (error || !vendor) {
+  if (!vendor) {
     redirect('/onboarding')
   }
 

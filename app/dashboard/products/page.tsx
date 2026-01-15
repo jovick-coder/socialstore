@@ -1,13 +1,17 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/whatsapp'
 import Image from 'next/image'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { getVendorByUserId, getVendorProducts, getVendorAnalytics } from '@/lib/queries'
 
 export const metadata = {
   title: 'Products | Dashboard',
   description: 'Manage your products and view analytics',
 }
+
+// Revalidate every minute
+export const revalidate = 60
 
 export default async function ProductsPage() {
   const supabase = await createServerSupabaseClient()
@@ -21,41 +25,30 @@ export default async function ProductsPage() {
     redirect('/login')
   }
 
-  // Get vendor profile
-  const { data: vendor } = await supabase
-    .from('vendors')
-    .select('*')
-    .eq('user_id', user.id)
-    .single()
+  // Get vendor profile - cached query
+  const vendor = await getVendorByUserId(user.id)
 
   if (!vendor) {
     redirect('/onboarding')
   }
 
-  // Get all products
-  const { data: products = [] } = await supabase
-    .from('products')
-    .select('*')
-    .eq('vendor_id', vendor.id)
-    .order('created_at', { ascending: false })
+  // Get all products - cached query
+  const products = await getVendorProducts(vendor.id)
 
-  // Get product analytics
-  const { data: analytics = [] } = await supabase
-    .from('analytics')
-    .select('metadata')
-    .eq('vendor_id', vendor.id)
-    .eq('event_type', 'product_click')
+  // Get product analytics - cached query, last 30 days
+  // INDEX RECOMMENDATION: Already have idx_analytics_product_id suggested in queries.ts
+  const analytics = await getVendorAnalytics(vendor.id, 30)
 
-  // Count clicks per product
-  const productClicks = (analytics || []).reduce((acc: Record<string, number>, event: any) => {
-    const productId = event.metadata?.product_id
-    if (productId) {
-      acc[productId] = (acc[productId] || 0) + 1
-    }
-    return acc
-  }, {})
-
-  const productsList = products || []
+  // Count clicks per product from analytics metadata
+  const productClicks = analytics
+    .filter(event => event.event_type === 'product_click')
+    .reduce((acc: Record<string, number>, event) => {
+      const productId = (event.metadata as any)?.product_id
+      if (productId) {
+        acc[productId] = (acc[productId] || 0) + 1
+      }
+      return acc
+    }, {})
 
   return (
     <div className="space-y-6">

@@ -14,6 +14,7 @@ import {
   getCartItemCount,
 } from '@/lib/cart'
 import BackButton from '@/components/BackButton'
+import { getCartById, getVendorById, getCustomerById } from '@/lib/queries'
 
 interface CartPageProps {
   params: Promise<{
@@ -28,13 +29,8 @@ export async function generateMetadata({
   params,
 }: CartPageProps): Promise<Metadata> {
   const { cartId } = await params
-  const supabase = await createServerSupabaseClient()
 
-  const { data: cart } = await supabase
-    .from('carts')
-    .select('vendor_id')
-    .eq('id', cartId)
-    .single()
+  const cart = await getCartById(cartId)
 
   if (!cart) {
     return {
@@ -46,12 +42,8 @@ export async function generateMetadata({
     }
   }
 
-  // Get vendor info
-  const { data: vendor } = await supabase
-    .from('vendors')
-    .select('store_name')
-    .eq('id', cart.vendor_id)
-    .single()
+  // Get vendor info - cached query
+  const vendor = await getVendorById(cart.vendor_id)
 
   const storeName = vendor?.store_name || 'Store'
 
@@ -69,38 +61,22 @@ export default async function CartPage({ params }: CartPageProps) {
   const { cartId } = await params
   const supabase = await createServerSupabaseClient()
 
-  // Get cart details
-  const { data: cart, error: cartError } = await supabase
-    .from('carts')
-    .select('*')
-    .eq('id', cartId)
-    .single()
+  // Get cart details - cached query
+  const cart = await getCartById(cartId)
 
-  if (cartError || !cart) {
+  if (!cart) {
     notFound()
   }
 
-  // Get vendor details separately
-  const { data: vendor, error: vendorError } = await supabase
-    .from('vendors')
-    .select('*')
-    .eq('id', cart.vendor_id)
-    .single()
+  // Get vendor details - cached query (deduplicates with generateMetadata)
+  const vendor = await getVendorById(cart.vendor_id)
 
-  if (vendorError || !vendor) {
+  if (!vendor) {
     notFound()
   }
 
-  // Get customer details if available
-  let customer = null
-  if (cart.customer_id) {
-    const { data: customerData } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('id', cart.customer_id)
-      .single()
-    customer = customerData
-  }
+  // Get customer details if available - cached query
+  const customer = cart.customer_id ? await getCustomerById(cart.customer_id) : null
 
   const items = cart.items as CartItem[]
   const total = calculateCartTotal(items)

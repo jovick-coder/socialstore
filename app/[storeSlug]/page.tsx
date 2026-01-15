@@ -9,12 +9,12 @@
  */
 
 import { notFound } from 'next/navigation'
-import { createPublicSupabaseClient } from '@/lib/supabase/public'
 import { Metadata } from 'next'
 import StoreClient from '@/components/StoreClient'
 import BackButton from '@/components/BackButton'
 import VendorHeader from '@/components/VendorHeader'
 import { headers } from 'next/headers'
+import { getVendorBySlug, getAvailableVendorProducts } from '@/lib/queries'
 
 // Enable ISR - cache for 2 minutes (stores update infrequently)
 export const revalidate = 120
@@ -32,13 +32,8 @@ export async function generateMetadata(
   { params }: StorePageProps
 ): Promise<Metadata> {
   const { storeSlug } = await params
-  const supabase = await createPublicSupabaseClient()
 
-  const { data: vendor, error } = await supabase
-    .from('vendors')
-    .select('*')
-    .ilike('slug', storeSlug) // Case-insensitive search
-    .single()
+  const vendor = await getVendorBySlug(storeSlug)
 
   if (!vendor) {
     return {
@@ -47,15 +42,10 @@ export async function generateMetadata(
   }
 
   // Get product count and first product image for preview
-  const { data: products = [] } = await supabase
-    .from('products')
-    .select('images')
-    .eq('vendor_id', vendor.id)
-    .eq('is_available', true)
-    .limit(1)
+  const products = await getAvailableVendorProducts(vendor.id)
 
   const firstProductImage =
-    products && products.length > 0 && products[0].images?.length > 0
+    products.length > 0 && products[0].images?.length > 0
       ? products[0].images[0]
       : null
   // Get host from headers (server-side)
@@ -63,7 +53,7 @@ export async function generateMetadata(
   const host = headersList.get('host')
   const storeUrl = `${host ? `https://${host}` : process.env.NEXT_PUBLIC_APP_URL}/${vendor.slug}`
   const description =
-    vendor.description ||
+    vendor.store_description ||
     `Shop at ${vendor.store_name} on SocialStore. Browse our collection and order via WhatsApp. Fast delivery and excellent customer service.`
 
   return {
@@ -124,26 +114,16 @@ export async function generateMetadata(
 
 export default async function StorePage({ params }: StorePageProps) {
   const { storeSlug } = await params
-  const supabase = await createPublicSupabaseClient()
 
-  // Get vendor - use public client for unauthenticated access
-  const { data: vendor, error: vendorError } = await supabase
-    .from('vendors')
-    .select('*')
-    .ilike('slug', storeSlug) // Case-insensitive search
-    .single()
+  // Get vendor - cached query deduplicates with generateMetadata
+  const vendor = await getVendorBySlug(storeSlug)
 
-  if (vendorError || !vendor) {
+  if (!vendor) {
     notFound()
   }
 
-  // Get available products
-  const { data: products = [] } = await supabase
-    .from('products')
-    .select('*')
-    .eq('vendor_id', vendor.id)
-    .eq('is_available', true)
-    .order('created_at', { ascending: false })
+  // Get available products - cached query deduplicates with generateMetadata
+  const products = await getAvailableVendorProducts(vendor.id)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -162,12 +142,12 @@ export default async function StorePage({ params }: StorePageProps) {
         businessHours={vendor.business_hours}
         responseTime={vendor.response_time}
         whatsappNumber={vendor.whatsapp_number}
-        description={vendor.description}
+        description={vendor.store_description}
       />
 
       {/* Products Section */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {products && products.length > 0 ? (
+        {products.length > 0 ? (
           <div>
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Our Products</h2>

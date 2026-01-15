@@ -2,9 +2,11 @@
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getVendorByUserId } from "@/lib/queries";
 
 /**
  * Get all products for the current vendor
+ * Uses cached query for vendor lookup
  */
 export async function getVendorProducts() {
   const supabase = await createServerSupabaseClient();
@@ -18,21 +20,19 @@ export async function getVendorProducts() {
     return { error: "Not authenticated" };
   }
 
-  // Get vendor
-  const { data: vendor, error: vendorError } = await supabase
-    .from("vendors")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  // Get vendor - uses cached query
+  const vendor = await getVendorByUserId(user.id);
 
-  if (vendorError || !vendor) {
+  if (!vendor) {
     return { error: "Vendor not found" };
   }
 
-  // Get products
+  // Get products - only select required columns
   const { data: products, error } = await supabase
     .from("products")
-    .select("*")
+    .select(
+      "id, vendor_id, name, description, price, contact_for_price, images, category, attributes, availability, is_available, is_active, created_at, updated_at"
+    )
     .eq("vendor_id", vendor.id)
     .order("created_at", { ascending: false });
 
