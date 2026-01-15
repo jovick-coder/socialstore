@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { Metadata } from 'next'
 import ProductDetailClient from '@/components/ProductDetailClient'
 import BackButton from '@/components/BackButton'
+import { headers } from 'next/headers'
 
 interface ProductDetailPageProps {
   params: Promise<{
@@ -44,9 +45,11 @@ export async function generateMetadata(
       title: 'Product Not Found | SocialStore',
     }
   }
-
+  // Get host from headers (server-side)
+  const headersList = await headers()
+  const host = headersList.get('host')
   const productImage = product.images && product.images.length > 0 ? product.images[0] : null
-  const productUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${vendor.slug}/product/${product.id}`
+  const productUrl = `${host ? `https://${host}` : process.env.NEXT_PUBLIC_APP_URL}/${vendor.slug}/product/${product.id}`
   const description = product.description || `${product.name} - Available at ${vendor.store_name}`
 
   return {
