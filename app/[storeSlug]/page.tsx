@@ -1,3 +1,13 @@
+/**
+ * Store Page - Public Store Front (Performance Optimized)
+ * 
+ * Performance features:
+ * - ISR with 120 second revalidation (stores don't change often)
+ * - Server-side rendering for public access
+ * - Optimized image loading with Next/Image
+ * - Minimal client-side JavaScript
+ */
+
 import { notFound } from 'next/navigation'
 import { createPublicSupabaseClient } from '@/lib/supabase/public'
 import { Metadata } from 'next'
@@ -5,6 +15,9 @@ import StoreClient from '@/components/StoreClient'
 import BackButton from '@/components/BackButton'
 import VendorHeader from '@/components/VendorHeader'
 import { headers } from 'next/headers'
+
+// Enable ISR - cache for 2 minutes (stores update infrequently)
+export const revalidate = 120
 
 interface StorePageProps {
   params: Promise<{

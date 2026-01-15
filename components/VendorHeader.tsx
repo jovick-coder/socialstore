@@ -1,4 +1,9 @@
-'use client'
+/**
+ * VendorHeader - Server Component (Performance Optimized)
+ * 
+ * Performance: Removed 'use client' - pure static rendering
+ * All content is rendered on server, no client-side JavaScript needed
+ */
 
 import Image from 'next/image'
 

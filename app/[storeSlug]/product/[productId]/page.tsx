@@ -1,9 +1,22 @@
+/**
+ * Product Detail Page - Server Component (Performance Optimized)
+ * 
+ * Performance features:
+ * - ISR with 180 second revalidation
+ * - All data fetched on server
+ * - Optimized metadata for SEO and social sharing
+ * - Minimal client-side JS
+ */
+
 import { notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { Metadata } from 'next'
 import ProductDetailClient from '@/components/ProductDetailClient'
 import BackButton from '@/components/BackButton'
 import { headers } from 'next/headers'
+
+// Enable ISR - product details cached for 3 minutes
+export const revalidate = 180
 
 interface ProductDetailPageProps {
   params: Promise<{
