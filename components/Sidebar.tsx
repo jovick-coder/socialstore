@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { logout } from '@/app/actions/auth'
+import LowDataModeToggle from '@/components/LowDataModeToggle'
 
 interface SidebarProps {
   isOpen: boolean
@@ -160,6 +161,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               )
             })}
           </nav>
+
+          {/* Low Data Mode Toggle */}
+          <div className="border-t px-3 py-4">
+            <LowDataModeToggle />
+          </div>
 
           {/* Logout */}
           <div className="border-t px-3 py-4">

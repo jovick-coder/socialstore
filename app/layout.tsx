@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { LowDataModeProvider } from "@/lib/LowDataModeContext";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -35,7 +36,11 @@ export default function RootLayout({
       <body
         // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        {/* Low Data Mode Provider: Enables data saver mode across the app */}
+        {/* Detects system Data Saver setting and allows manual override */}
+        <LowDataModeProvider>
+          {children}
+        </LowDataModeProvider>
       </body>
     </html>
   );
