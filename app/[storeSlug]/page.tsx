@@ -4,6 +4,7 @@ import { Metadata } from 'next'
 import StoreClient from '@/components/StoreClient'
 import BackButton from '@/components/BackButton'
 import VendorHeader from '@/components/VendorHeader'
+import { headers } from 'next/headers'
 
 interface StorePageProps {
   params: Promise<{
@@ -44,8 +45,10 @@ export async function generateMetadata(
     products && products.length > 0 && products[0].images?.length > 0
       ? products[0].images[0]
       : null
-
-  const storeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${vendor.slug}`
+  // Get host from headers (server-side)
+  const headersList = await headers()
+  const host = headersList.get('host')
+  const storeUrl = `${host ? `https://${host}` : process.env.NEXT_PUBLIC_APP_URL}/${vendor.slug}`
   const description =
     vendor.description ||
     `Shop at ${vendor.store_name} on SocialStore. Browse our collection and order via WhatsApp. Fast delivery and excellent customer service.`
@@ -64,7 +67,7 @@ export async function generateMetadata(
     authors: [{ name: vendor.store_name }],
     creator: vendor.store_name,
     publisher: 'SocialStore',
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+    metadataBase: new URL(host ? `https://${host}` : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
     alternates: {
       canonical: storeUrl,
     },
