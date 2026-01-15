@@ -2,16 +2,19 @@
 
 /**
  * ProfileClient - Client component for profile page interactivity
- * 
+ *
  * Performance: Minimal client-side JS - only interactive form logic
  * Server fetching: All data is fetched on the server and passed as props
+ * Image optimization: Uses next/image for vendor logos and branding
  */
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import VendorBusinessForm from '@/components/VendorBusinessForm'
+import OptimizedImage from '@/components/OptimizedImage'
 import { updateVendorProfile, updateVendorBusinessInfo } from '@/app/actions/vendor'
+import { generateBlurDataURL } from '@/lib/imageOptimization'
 
 interface VendorProfile {
   id: string
@@ -279,10 +282,23 @@ export default function ProfileClient({ vendor }: ProfileClientProps) {
                     <div>
                       <p className="text-sm text-gray-600 mb-2">Business Logo</p>
                       <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
-                        <img
+                          {/* Import OptimizedImage for vendor logo */}
+                          {/* Logo is typically above fold: use priority loading */}
+                          {/* Lazy loading would delay visibility of important branding */}
+                          {/* next/image with WebP: 25-35% file size reduction */}
+                          <OptimizedImage
                           src={businessInfo.logo_url}
                           alt={vendor.store_name}
+                            width={128}
+                            height={128}
                           className="w-full h-full object-cover"
+                            // Logo is above-fold branding element: prioritize loading
+                            // Improves LCP (Largest Contentful Paint) metric
+                            priority={true}
+                            // Logo is small and important: higher quality acceptable
+                            // Blur placeholder for logo smoothness
+                            blurDataURL={generateBlurDataURL(128, 128, '#e5e7eb')}
+                            fallbackText="Logo"
                         />
                       </div>
                     </div>
