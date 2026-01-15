@@ -131,20 +131,36 @@ export default function StoreClient({ vendor, products }: StoreClientProps) {
   // Save draft cart to Supabase whenever cart changes (for recovery)
   useEffect(() => {
     const saveDraft = async () => {
-      if (customerId && cart.length > 0) {
-        const { error } = await saveDraftCart(vendor.id, cart, customerId)
-        if (error) {
-          console.error('Error saving draft cart:', error)
-        } else {
-          console.log('Draft cart saved to Supabase')
+      if (!customerId) return
+
+      // If cart is empty, delete the draft cart from Supabase
+      if (cart.length === 0) {
+        // Find and delete any existing draft cart
+        if (recoverableCart?.id) {
+          const { error } = await deleteDraftCart(recoverableCart.id)
+          if (error) {
+            console.error('Error deleting empty draft cart:', error)
+          } else {
+            console.log('Empty draft cart deleted from Supabase')
+            setRecoverableCart(null)
+          }
         }
+        return
+      }
+
+      // Save non-empty cart
+      const { error } = await saveDraftCart(vendor.id, cart, customerId)
+      if (error) {
+        console.error('Error saving draft cart:', error)
+      } else {
+        console.log('Draft cart saved to Supabase')
       }
     }
 
     // Debounce to avoid too many Supabase calls
     const timer = setTimeout(saveDraft, 500)
     return () => clearTimeout(timer)
-  }, [cart, customerId, vendor.id])
+  }, [cart, customerId, vendor.id, recoverableCart?.id])
 
   const handleAddToCart = (product: Product) => {
     // const wasEmpty = cart.length === 0
@@ -213,7 +229,7 @@ export default function StoreClient({ vendor, products }: StoreClientProps) {
       await trackCartCreated(vendor.id, createdCart.id, itemCount, total)
 
       // Generate cart URL
-      const cartUrl = generateCartUrl(createdCart.id)
+      const cartUrl = await generateCartUrl(createdCart.id)
 
       // Generate WhatsApp link with order details
       const whatsappLink = generateCartWhatsAppLink(

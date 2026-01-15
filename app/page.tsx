@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import { Metadata } from 'next'
-
+import { headers } from 'next/headers'
+// Get host from headers (server-side)
+const headersList = await headers()
+const host = headersList.get('host')
 export const metadata: Metadata = {
   title: 'SocialStore - Sell Smarter on WhatsApp | Online Catalog for Vendors',
   description:
@@ -18,7 +21,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'SocialStore' }],
   creator: 'SocialStore',
   publisher: 'SocialStore',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(host ? `https://${host}` : 'http://localhost:3000'),
   openGraph: {
     title: 'SocialStore - Sell Smarter on WhatsApp',
     description:

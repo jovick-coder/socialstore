@@ -282,10 +282,15 @@ export function generateCartSummary(items: CartItem[]): string {
 
 /**
  * Generate cart URL
+ * Note: This is a client-side helper - for server-side URL generation, use window.location.origin
  */
 export function generateCartUrl(cartId: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  return `${baseUrl}/cart/${cartId}`;
+  // Client-side: use window.location.origin
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}/cart/${cartId}`;
+  }
+  // Fallback for server-side calls
+  return `/cart/${cartId}`;
 }
 
 /**
