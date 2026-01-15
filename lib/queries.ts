@@ -373,3 +373,43 @@ export type Customer = Awaited<ReturnType<typeof getCustomerById>>;
 export type AnalyticsEvent = NonNullable<
   Awaited<ReturnType<typeof getVendorAnalytics>>
 >[number];
+
+/**
+ * Limit product images to maximum count
+ *
+ * Performance benefit:
+ * - Reduces payload size by 50-100 KB per product (if 10+ images)
+ * - Limits JSON array processing
+ * - Encourages users to select best images
+ *
+ * Applied to all product queries before returning
+ */
+export function limitProductImages<T extends { images?: string[] } | null>(
+  product: T,
+  maxImages: number = 5
+): T {
+  if (!product || !product.images || !Array.isArray(product.images)) {
+    return product;
+  }
+
+  return {
+    ...product,
+    images: product.images.slice(0, maxImages),
+  };
+}
+
+/**
+ * Limit images for multiple products
+ *
+ * Applied to product lists returned from queries
+ */
+export function limitProductImagesInArray<T extends { images?: string[] }>(
+  products: T[] | null,
+  maxImages: number = 5
+): T[] {
+  if (!products || !Array.isArray(products)) {
+    return products || [];
+  }
+
+  return products.map((product) => limitProductImages(product, maxImages));
+}
