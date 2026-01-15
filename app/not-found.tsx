@@ -7,7 +7,7 @@ export default function NotFound() {
   const router = useRouter()
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-linear-to-b from-green-50 to-white flex items-center justify-center px-4 py-12">
       <div className="text-center max-w-md">
         {/* 404 Illustration */}
         <div className="mb-8">
