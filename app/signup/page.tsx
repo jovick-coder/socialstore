@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useActionState } from 'react'
 import { signupWithEmail, getGoogleOAuthUrl } from '@/app/actions/auth'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -10,6 +10,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [signupResult, signupAction, isPending] = useActionState(signupWithEmail as any, { error: null as string | null })
 
   async function handleGoogleSignup() {
     setLoading(true)
@@ -22,22 +23,6 @@ export default function SignupPage() {
       setLoading(false)
     } else if (result.url) {
       window.location.href = result.url
-    }
-  }
-
-  async function handleEmailSignup(formData: FormData) {
-    setLoading(true)
-    setError(null)
-
-    const result = await signupWithEmail(formData)
-
-    if (result?.error) {
-      setError(result.error)
-      setLoading(false)
-    } else if (result?.success && result?.redirectTo) {
-      // Programmatic navigation after registration is appropriate
-      // Use window.location for reliable redirect after auth state change
-      window.location.href = result.redirectTo
     }
   }
 
@@ -57,9 +42,9 @@ export default function SignupPage() {
         {/* Signup Card */}
         <div className="mt-8 rounded-2xl bg-white p-8 shadow-lg">
           {/* Error Message */}
-          {error && (
+          {(signupResult?.error || error) && (
             <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-600">
-              {error}
+              {signupResult?.error || error}
             </div>
           )}
 
@@ -105,7 +90,7 @@ export default function SignupPage() {
           </div>
 
           {/* Email/Password Form */}
-          <form action={handleEmailSignup} className="space-y-4">
+          <form action={signupAction} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -156,16 +141,16 @@ export default function SignupPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-3 font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading && (
+              {isPending && (
                 <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               )}
-              {loading ? 'Setting up...' : 'Get Started'}
+              {isPending ? 'Setting up...' : 'Get Started'}
             </button>
           </form>
 

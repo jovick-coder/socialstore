@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 /**
  * Server action for email/password signup
@@ -24,7 +25,7 @@ export async function signupWithEmail(formData: FormData) {
   });
 
   if (error) {
-    return { error: error.message };
+    throw new Error(error.message);
   }
 
   // Auto sign-in after signup (since email confirmation is disabled)
@@ -35,11 +36,11 @@ export async function signupWithEmail(formData: FormData) {
     });
 
     if (signInError) {
-      return { error: signInError.message };
+      throw new Error(signInError.message);
     }
   }
 
-  return { success: true, redirectTo: "/onboarding" };
+  redirect("/onboarding");
 }
 
 /**
@@ -69,7 +70,7 @@ export async function loginWithEmail(formData: FormData) {
 
   const redirectTo = vendor ? "/dashboard" : "/onboarding";
 
-  return { success: true, redirectTo };
+  redirect(redirectTo);
 }
 
 /**
@@ -103,13 +104,11 @@ export async function logout() {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      console.error("Logout error:", error);
-      return { success: false, error: error.message };
+      throw new Error(error.message);
     }
 
-    return { success: true, redirectTo: "/login" };
+    redirect("/login");
   } catch (error: any) {
-    console.error("Logout exception:", error);
     return { success: false, error: error?.message || "Failed to logout" };
   }
 }
