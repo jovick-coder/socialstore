@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LowDataModeProvider } from "@/lib/LowDataModeContext";
+import { QueryProvider } from "@/lib/QueryProvider";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -36,11 +37,15 @@ export default function RootLayout({
       <body
         // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Low Data Mode Provider: Enables data saver mode across the app */}
-        {/* Detects system Data Saver setting and allows manual override */}
-        <LowDataModeProvider>
-          {children}
-        </LowDataModeProvider>
+        {/* TanStack Query Provider: Enables client-side caching for dashboard navigation */}
+        {/* Ensures dashboard pages feel like a client-side SPA (instant navigation) */}
+        <QueryProvider>
+          {/* Low Data Mode Provider: Enables data saver mode across the app */}
+          {/* Detects system Data Saver setting and allows manual override */}
+          <LowDataModeProvider>
+            {children}
+          </LowDataModeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

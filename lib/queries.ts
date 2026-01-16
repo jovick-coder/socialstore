@@ -79,7 +79,7 @@ export const getVendorById = cache(async (vendorId: string) => {
   const { data, error } = await supabase
     .from("vendors")
     .select(
-      "id, store_name, slug, whatsapp_number, store_description, logo_url, city, business_hours, response_time"
+      "id, user_id, store_name, slug, whatsapp_number, store_description, logo_url, city, business_hours, response_time"
     )
     .eq("id", vendorId)
     .single();

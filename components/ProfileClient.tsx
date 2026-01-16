@@ -21,7 +21,7 @@ interface VendorProfile {
   store_name: string
   slug: string
   whatsapp_number: string
-  description: string | null
+  store_description: string | null  // Changed from 'description'
   logo_url: string | null
   city: string | null
   business_hours: string | null
@@ -41,7 +41,7 @@ export default function ProfileClient({ vendor }: ProfileClientProps) {
   const [formData, setFormData] = useState({
     store_name: vendor.store_name,
     whatsapp_number: vendor.whatsapp_number,
-    description: vendor.description || '',
+    description: vendor.store_description || '',  // Changed from vendor.description
   })
 
   const [businessInfo, setBusinessInfo] = useState({
@@ -211,7 +211,7 @@ export default function ProfileClient({ vendor }: ProfileClientProps) {
                   setFormData({
                     store_name: vendor.store_name,
                     whatsapp_number: vendor.whatsapp_number,
-                    description: vendor.description || '',
+                    description: vendor.store_description || '',
                   })
                 }}
                 className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"

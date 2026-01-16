@@ -18,6 +18,7 @@ export interface Product {
   vendor_id: string;
   name: string;
   price: number;
+  contact_for_price?: boolean;
   description: string | null;
   images: string[];
   is_available: boolean;
