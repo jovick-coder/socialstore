@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, memo, useActionState } from 'react'
+import Link from 'next/link'
 import { logout } from '@/app/actions/auth'
 
 interface TopNavProps {
@@ -92,14 +93,15 @@ function TopNav({ onMenuClick }: TopNavProps) {
 
               {/* Menu - Positioned absolutely (no layout impact on parent) */}
               <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
-                {/* Profile Link - Uses href for instant navigation */}
-                <a
+                {/* Profile Link - Uses Next.js Link with prefetch for instant navigation */}
+                <Link
                   href="/dashboard/profile"
                   onClick={() => setDropdownOpen(false)}
+                  prefetch={true}
                   className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 duration-100"
                 >
                   Profile Settings
-                </a>
+                </Link>
 
                 {/* Logout Button - Server action via form */}
                 <form action={logoutAction}>

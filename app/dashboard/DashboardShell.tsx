@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Sidebar from '@/components/Sidebar'
 import TopNav from '@/components/TopNav'
+import DashboardPrefetcher from '@/components/DashboardPrefetcher'
 
 interface DashboardShellProps {
   children: React.ReactNode
@@ -55,6 +56,10 @@ export default function DashboardShell({ children }: DashboardShellProps) {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* PREFETCHER: Silent route prefetching for instant navigation */}
+      {/* Runs once on mount, prefetches all dashboard routes in background */}
+      <DashboardPrefetcher />
+
       {/* SIDEBAR: Memoized, never re-renders on child updates */}
       <Sidebar isOpen={sidebarOpen} onClose={handleSidebarClose} />
 
